@@ -1,0 +1,37 @@
+# Integration test overrides
+# Testcontainers will override datasource/rabbitmq/redis URLs via @DynamicPropertySource
+# These just set defaults for non-container properties
+
+spring:
+  jpa:
+    hibernate:
+      ddl-auto: create-drop  # fresh schema per test run
+    show-sql: false
+
+  rabbitmq:
+    listener:
+      simple:
+        acknowledge-mode: manual
+        retry:
+          enabled: true
+          initial-interval: 200ms   # faster retries in tests
+          max-attempts: 2
+          multiplier: 1.5
+
+# Shorter dedup TTL in tests so we can run multiple test scenarios
+notification:
+  dedup:
+    ttl: 300  # 5 minutes (vs 24 hours in prod)
+
+# Logging: reduce noise in test output
+logging:
+  level:
+    com.raghav.notificationservice: INFO
+    org.springframework.amqp: WARN
+    org.testcontainers: WARN
+    com.github.dockerjava: WARN
+
+# JWT - fixed secret for tests so tokens are predictable
+jwt:
+  secret: dGVzdC1zZWNyZXQta2V5LW11c3QtYmUtMzItYnl0ZXMhIQ==
+  expiration-ms: 3600000

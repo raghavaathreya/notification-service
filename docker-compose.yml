@@ -1,0 +1,115 @@
+version: '3.9'
+
+services:
+
+  # ─────────────────────────────────────────────
+  # PostgreSQL
+  # ─────────────────────────────────────────────
+  postgres:
+    image: postgres:15-alpine
+    container_name: notif-postgres
+    environment:
+      POSTGRES_DB: notificationdb
+      POSTGRES_USER: notif_user
+      POSTGRES_PASSWORD: notif_pass
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U notif_user -d notificationdb"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ─────────────────────────────────────────────
+  # Redis
+  # ─────────────────────────────────────────────
+  redis:
+    image: redis:7-alpine
+    container_name: notif-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ─────────────────────────────────────────────
+  # RabbitMQ with Management UI
+  # ─────────────────────────────────────────────
+  rabbitmq:
+    image: rabbitmq:3.12-management-alpine
+    container_name: notif-rabbitmq
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+    ports:
+      - "5672:5672"    # AMQP
+      - "15672:15672"  # Management UI
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "ping"]
+      interval: 15s
+      timeout: 10s
+      retries: 5
+
+  # ─────────────────────────────────────────────
+  # Notification Service
+  # ─────────────────────────────────────────────
+  notification-service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: notif-app
+    ports:
+      - "8080:8080"
+    environment:
+      DB_USERNAME: notif_user
+      DB_PASSWORD: notif_pass
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      RABBITMQ_HOST: rabbitmq
+      RABBITMQ_PORT: 5672
+      RABBITMQ_USER: guest
+      RABBITMQ_PASS: guest
+
+
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-your-key-here}
+      GEMINI_API_KEY: ${GEMINI_API_KEY:-your-key-here}
+      PINECONE_API_KEY: ${PINECONE_API_KEY:-your-key-here}
+      PINECONE_URL: ${PINECONE_URL:-https://your-index.svc.pinecone.io}
+      # Email
+      SMTP_HOST: ${SMTP_HOST:-smtp.gmail.com}
+      SMTP_PORT: ${SMTP_PORT:-587}
+      SMTP_USERNAME: ${SMTP_USERNAME:-your-email@gmail.com}
+      SMTP_PASSWORD: ${SMTP_PASSWORD:-your-app-password}
+      EMAIL_FROM: ${EMAIL_FROM:-noreply@notificationservice.com}
+      EMAIL_FROM_NAME: ${EMAIL_FROM_NAME:-Notification Service}
+      # Twilio
+      TWILIO_ACCOUNT_SID: ${TWILIO_ACCOUNT_SID:-ACxxxxxxxx}
+      TWILIO_AUTH_TOKEN: ${TWILIO_AUTH_TOKEN:-your-token}
+      TWILIO_FROM_NUMBER: ${TWILIO_FROM_NUMBER:-+1234567890}
+      # Firebase
+      FIREBASE_CREDENTIALS_PATH: ${FIREBASE_CREDENTIALS_PATH:-firebase-service-account.json}
+      FIREBASE_PROJECT_ID: ${FIREBASE_PROJECT_ID:-your-project-id}
+      # JWT
+      JWT_SECRET: ${JWT_SECRET:-3f8b2c1d9e4a7f6b5c0d8e3f2a1b4c9d7e6f5a4b3c2d1e0f9a8b7c6d5e4f3a2b}
+      JWT_EXPIRATION_MS: ${JWT_EXPIRATION_MS:-86400000}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    restart: on-failure
+
+volumes:
+  postgres_data:
+  redis_data:
+  rabbitmq_data:

@@ -1,0 +1,121 @@
+spring:
+  application:
+    name: notification-service
+
+  # PostgreSQL
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://postgres:5432/notificationdb}
+    username: ${DB_USERNAME:notif_user}
+    password: ${DB_PASSWORD:notif_pass}
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
+
+  # Redis
+  data:
+    redis:
+      host: ${REDIS_HOST:redis}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:}
+      timeout: 2000ms
+      ssl:
+        enabled: ${REDIS_SSL:false}
+
+  # RabbitMQ
+  rabbitmq:
+    host: ${RABBITMQ_HOST:rabbitmq}
+    port: ${RABBITMQ_PORT:5672}
+    username: ${RABBITMQ_USER:guest}
+    password: ${RABBITMQ_PASS:guest}
+    virtual-host: ${RABBITMQ_VHOST:/}
+    ssl:
+      enabled: ${RABBITMQ_SSL:false}
+    listener:
+      simple:
+        acknowledge-mode: manual
+        retry:
+          enabled: true
+          initial-interval: 1000ms
+          max-attempts: 3
+          multiplier: 2.0
+
+  # Email (JavaMail / SMTP)
+  mail:
+    host: ${SMTP_HOST:smtp.gmail.com}
+    port: ${SMTP_PORT:587}
+    username: ${SMTP_USERNAME:your-email@gmail.com}
+    password: ${SMTP_PASSWORD:your-app-password}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+            required: true
+        transport:
+          protocol: smtp
+
+server:
+  port: 8080
+
+# RabbitMQ Exchange/Queue names
+rabbitmq:
+  exchange:
+    notification: notification.exchange
+  queue:
+    email: notification.email.queue
+    sms: notification.sms.queue
+    push: notification.push.queue
+  routing-key:
+    email: notification.email
+    sms: notification.sms
+    push: notification.push
+
+# Gemini
+gemini:
+  api:
+    key: ${GEMINI_API_KEY:your-gemini-key}
+  embedding:
+    model: gemini-embedding-001
+    dimension: 3072
+  generation:
+    model: gemini-2.0-flash
+    max-tokens: 300
+
+# Pinecone
+pinecone:
+  api:
+    key: ${PINECONE_API_KEY:your-pinecone-key}
+    url: ${PINECONE_URL:https://your-index.svc.pinecone.io}
+  top-k: 3
+
+# Redis TTL for deduplication (in seconds)
+notification:
+  dedup:
+    ttl: 86400  # 24 hours
+  email:
+    from: ${EMAIL_FROM:noreply@notificationservice.com}
+    from-name: ${EMAIL_FROM_NAME:Notification Service}
+
+# Twilio (SMS)
+twilio:
+  account-sid: ${TWILIO_ACCOUNT_SID:your-account-sid}
+  auth-token: ${TWILIO_AUTH_TOKEN:your-auth-token}
+  from-number: ${TWILIO_FROM_NUMBER:+1234567890}
+
+# Firebase (Push)
+firebase:
+  credentials-path: ${FIREBASE_CREDENTIALS_PATH:firebase-service-account.json}
+  project-id: ${FIREBASE_PROJECT_ID:your-project-id}
+
+# JWT
+jwt:
+  secret: ${JWT_SECRET:3f8b2c1d9e4a7f6b5c0d8e3f2a1b4c9d7e6f5a4b3c2d1e0f9a8b7c6d5e4f3a2b}
+  expiration-ms: ${JWT_EXPIRATION_MS:86400000}
