@@ -542,7 +542,7 @@
                 <div class="logo-icon">⚡</div>
                 <span class="logo-text">Notif</span>
             </div>
-            <div class="logo-sub">v1.0.0 · localhost:8080</div>
+            <div class="logo-sub">v1.0.0 · render.com</div>
         </div>
 
         <nav class="nav">
@@ -1022,7 +1022,7 @@
                     <div class="card-title">🔌 API Configuration</div>
                     <div class="form-group">
                         <label class="form-label">Base URL</label>
-                        <input type="text" class="form-input" id="set-baseUrl" value="http://localhost:8080">
+                        <input type="text" class="form-input" id="set-baseUrl" value="https://notification-service-qb82.onrender.com">
                     </div>
                     <div class="form-group">
                         <label class="form-label">JWT Token (auto-filled after login)</label>
@@ -1089,7 +1089,7 @@
 
 <script>
     let state = {
-        baseUrl: 'http://localhost:8080',
+        baseUrl: 'https://notification-service-qb82.onrender.com',
         token: '',
         selectedChannel: 'EMAIL',
         notifications: [],
@@ -1101,17 +1101,15 @@
         const saved = localStorage.getItem('notif-settings');
         if (saved) {
             const s = JSON.parse(saved);
-            state.baseUrl = s.baseUrl || state.baseUrl;
+            // Always override localhost with the deployed URL
+            state.baseUrl = (s.baseUrl && !s.baseUrl.includes('localhost'))
+                ? s.baseUrl
+                : 'https://notification-service-qb82.onrender.com';
             state.token = s.token || state.token;
         }
         updateTokenDisplay();
         document.getElementById('set-baseUrl').value = state.baseUrl;
         document.getElementById('set-token').value = state.token;
-
-        // Warn on mobile if still pointing at localhost
-        if (state.baseUrl.includes('localhost') && window.innerWidth <= 768) {
-            showLocalhostWarning();
-        }
     }
 
     function showLocalhostWarning() {
@@ -1150,12 +1148,11 @@
     function openSidebar() {
         document.getElementById('sidebar').classList.add('open');
         document.body.style.overflow = 'hidden';
-        // Create overlay fresh in DOM — never leave a fixed element sitting invisibly
         const overlay = document.createElement('div');
         overlay.id = 'sidebarOverlay';
-        overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:50;cursor:pointer;-webkit-tap-highlight-color:transparent;';
+        overlay.style.cssText = 'position:fixed;top:0;left:240px;right:0;bottom:0;background:rgba(0,0,0,0.6);z-index:50;cursor:pointer;-webkit-tap-highlight-color:transparent;';
         overlay.addEventListener('click', closeSidebar);
-        overlay.addEventListener('touchend', closeSidebar);
+        overlay.addEventListener('touchstart', closeSidebar);
         document.body.appendChild(overlay);
     }
     function closeSidebar() {
