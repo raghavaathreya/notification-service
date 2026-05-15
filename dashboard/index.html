@@ -1239,7 +1239,7 @@
         const box = document.getElementById('regResponse');
         try {
             const res = await fetch(state.baseUrl + '/api/v1/auth/register', {
-                method: 'POST', headers: { 'Content-Type': 'application/json' },
+                method: 'POST', headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
                 body: JSON.stringify({ email, password })
             });
             const data = await res.json();
@@ -1259,7 +1259,7 @@
         const box = document.getElementById('loginResponse');
         try {
             const res = await fetch(state.baseUrl + '/api/v1/auth/login', {
-                method: 'POST', headers: { 'Content-Type': 'application/json' },
+                method: 'POST', headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
                 body: JSON.stringify({ email, password })
             });
             const data = await res.json();
@@ -1310,14 +1310,7 @@
             setTimeout(() => activatePipelineStep('sp-dedup', true), 300);
             const res = await fetch(state.baseUrl + '/api/v1/notifications', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + state.token },
-                body: JSON.stringify(payload)
-            });
-            const data = await res.json();
-            box.className = 'response-box' + (res.ok ? '' : ' error');
-            box.textContent = JSON.stringify(data, null, 2);
-            if (res.ok) {
-                setTimeout(() => activatePipelineStep('sp-queue', true), 600);
+                headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'Authorization': 'Bearer ' + state.token },
                 setTimeout(() => activatePipelineStep('sp-sent', true), 1200);
                 toast('Notification queued successfully!', 'success');
                 addActivity(payload, data);
@@ -1409,7 +1402,7 @@
         try {
             const res = await fetch(state.baseUrl + '/api/v1/user-context', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + state.token },
+                headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'Authorization': 'Bearer ' + state.token },
                 body: JSON.stringify(payload)
             });
             const data = await res.json();
@@ -1447,7 +1440,7 @@
         try {
             const res = await fetch(state.baseUrl + '/api/v1/notifications', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + state.token },
+                headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'Authorization': 'Bearer ' + state.token },
                 body: JSON.stringify(payload)
             });
             const data = await res.json();
