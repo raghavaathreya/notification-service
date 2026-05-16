@@ -49,18 +49,16 @@ spring:
   # Email (JavaMail / SMTP)
   mail:
     host: ${SMTP_HOST:smtp.gmail.com}
-    port: ${SMTP_PORT:465}
+    port: ${SMTP_PORT:587}
     username: ${SMTP_USERNAME:your-email@gmail.com}
     password: ${SMTP_PASSWORD:your-app-password}
     properties:
       mail:
         smtp:
           auth: true
-          ssl:
-            enable: true
           starttls:
-            enable: false
-            required: false
+            enable: true
+            required: true
         transport:
           protocol: smtp
 
