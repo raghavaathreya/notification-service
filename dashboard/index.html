@@ -48,29 +48,12 @@
 
         /* noise texture removed - causes touch blocking on iOS Safari */
 
-        .ambient, .ambient2 {
-            position: fixed;
-            border-radius: 50%;
-            pointer-events: none;
-            z-index: 0;
-        }
-        .ambient {
-            width: 600px; height: 600px;
-            background: radial-gradient(circle, rgba(0,212,170,0.06) 0%, transparent 70%);
-            top: -200px; right: -200px;
-        }
-        .ambient2 {
-            width: 400px; height: 400px;
-            background: radial-gradient(circle, rgba(79,195,247,0.04) 0%, transparent 70%);
-            bottom: -100px; left: -100px;
-        }
+        /* ambient removed */
 
         /* Layout */
         .layout {
             display: flex;
             min-height: 100vh;
-            position: relative;
-            z-index: 1;
         }
 
         /* ── SIDEBAR (desktop) ── */
@@ -530,8 +513,6 @@
 </head>
 <body>
 
-<div class="ambient"></div>
-<div class="ambient2"></div>
 <div class="toast-container" id="toastContainer"></div>
 
 <div class="layout">
@@ -1311,6 +1292,13 @@
             const res = await fetch(state.baseUrl + '/api/v1/notifications', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'Authorization': 'Bearer ' + state.token },
+                body: JSON.stringify(payload)
+            });
+            const data = await res.json();
+            box.className = 'response-box' + (res.ok ? '' : ' error');
+            box.textContent = JSON.stringify(data, null, 2);
+            if (res.ok) {
+                setTimeout(() => activatePipelineStep('sp-queue', true), 600);
                 setTimeout(() => activatePipelineStep('sp-sent', true), 1200);
                 toast('Notification queued successfully!', 'success');
                 addActivity(payload, data);
@@ -1345,7 +1333,7 @@
         content.innerHTML = '<div style="text-align:center;padding:24px;color:var(--text3)"><div class="spinner" style="margin:0 auto 12px"></div>Loading...</div>';
         try {
             const res = await fetch(state.baseUrl + '/api/v1/notifications/user/' + userId, {
-                headers: { 'Authorization': 'Bearer ' + state.token }
+                headers: { 'Authorization': 'Bearer ' + state.token, 'Accept': 'application/json' }
             });
             const data = await res.json();
             if (!res.ok) { content.innerHTML = `<div class="alert alert-error">Error: ${JSON.stringify(data)}</div>`; return; }
@@ -1420,7 +1408,7 @@
         if (!confirm(`Delete all context for ${userId}?`)) return;
         try {
             const res = await fetch(state.baseUrl + '/api/v1/user-context/' + userId, {
-                method: 'DELETE', headers: { 'Authorization': 'Bearer ' + state.token }
+                method: 'DELETE', headers: { 'Authorization': 'Bearer ' + state.token, 'Accept': 'application/json' }
             });
             if (res.ok) toast('Context deleted for ' + userId, 'success');
             else toast('Delete failed', 'error');
